@@ -1,11 +1,16 @@
 import requests
 import random
+import time
 import json
 import tqdm
 from bs4 import BeautifulSoup
 import argparse
 import re
 from pathlib import Path
+
+
+class RateLimitError(Exception):
+    pass
 
 
 def _parse_args():
@@ -45,7 +50,20 @@ def parse_page(page):
     base_url = "https://fallout.fandom.com/"
     url = f"{base_url}wiki/{page}"
 
-    response = requests.get(url)
+    rate_limit_counter = 0
+
+    while True:
+        response = requests.get(url)
+
+        if response.status_code == 429:
+            print("WARNING! Request declined due to rate limiting.")
+            rate_limit_counter += 1
+            if rate_limit_counter > 5:
+                raise RateLimitError()
+            time.sleep(10)
+            continue
+        else:
+            break
 
     soup = BeautifulSoup(response.text, "html.parser")
 
@@ -60,8 +78,12 @@ def parse_page(page):
     link_elements = body.find_all("a")
     links = []
     for e in link_elements:
+        if "href" not in e:
+            continue
         if not e["href"].startswith("/wiki/"):
             # external link or some image or something skip
+            continue
+        if "#" in e["href"]:
             continue
         links.append(e["href"].removeprefix("/wiki/"))
 
@@ -93,6 +115,15 @@ def main():
 
         try:
             result = parse_page(page)
+        except RateLimitError:
+            print(
+                "Rate limited excessive times saving progress. Before trying again (sleeping 60s)"
+            )
+            with args.output.open("w") as io:
+                json.dump(results, io)
+            time.sleep(60)
+            result = None
+
         except Exception as e:
             print(f"An error occurred for page {page}: {e}")
             result = None

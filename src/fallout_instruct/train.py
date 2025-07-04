@@ -186,7 +186,7 @@ def main(model, data, train_config):
         model=model,
         args=train_args,
         train_dataset=ds["train"],
-        eval_dataset=ds["validation"].select(range(10)),
+        eval_dataset=ds["validation"].select(range(2000)),
         data_collator=data_collator,
         compute_metrics=compute_metrics_func,
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,

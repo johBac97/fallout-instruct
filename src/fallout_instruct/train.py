@@ -45,9 +45,9 @@ def preprocess(samples, tokenizer, system_prompt):
 
 @click.command()
 @click.option("--model", default="meta-llama/Llama-3.2-1B-Instruct")
-@click.option("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+# @click.option("--device", default="cuda" if torch.cuda.is_available() else "cpu")
 @click.option("--train-config", default=None)
-def main(model, device, train_config):
+def main(model, train_config):
     bnb_config = transformers.BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
@@ -55,10 +55,11 @@ def main(model, device, train_config):
         bnb_4bit_use_double_quant=True,
     )
 
-    model = transformers.AutoModelForCausalLM.from_pretrained(
-        model, device_map=device, quantization_config=bnb_config
-    )
     tokenizer = transformers.AutoTokenizer.from_pretrained(model)
+    model = transformers.AutoModelForCausalLM.from_pretrained(
+        model, device_map="auto", quantization_config=bnb_config
+    )
+
     tokenizer.pad_token = tokenizer.eos_token
 
     model = peft.prepare_model_for_kbit_training(model)
@@ -89,7 +90,8 @@ def main(model, device, train_config):
         preprocess, tokenizer=tokenizer, system_prompt=system_prompt
     )
 
-    data = data.preprocess(preprocess_func)
+    data = data.map(preprocess_func)
+    data.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
 
     data_collator = transformers.DataCollatorForSeq2Seq(
         tokenizer, padding="longest", return_tensors="pt"

@@ -1,12 +1,14 @@
 {
     "output_dir": "runs/script_train_1",
+    "num_train_epochs": 1,
     "per_device_train_batch_size": 4,
     "per_device_eval_batch_size": 4,
     "eval_steps": 100,
     "eval_on_start": true,
     "eval_strategy": "steps",
+    "eval_accumulation_steps": 10,
     "fp16": true,
     "optim": "adafactor",
-    "torch_compile": true,
+    "torch_compile": false,
     "report_to": ["tensorboard"]
 }

@@ -1,0 +1,7 @@
+{
+    "output_dir": "runs/llama_3.2_1B_pretrain_1",
+    "per_device_train_batch_size": 2,
+    "num_train_epochs": 3,
+    "optim": "paged_adamw_8bit",
+    "fp16": true
+}

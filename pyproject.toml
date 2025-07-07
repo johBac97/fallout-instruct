@@ -13,6 +13,7 @@ dependencies = [
     "datasets>=3.6.0",
     "evaluate>=0.4.4",
     "jupyter>=1.1.1",
+    "mwparserfromhell>=0.7.2",
     "peft>=0.16.0",
     "requests>=2.32.3",
     "tenacity>=9.1.2",
@@ -29,3 +30,5 @@ build-backend = "hatchling.build"
 [project.scripts]
 scrape="fallout_instruct.scrape:main"
 train="fallout_instruct.train:main"
+pretrain="fallout_instruct.pretrain:main"
+clean-wikia-dump="fallout_instruct.clean_wikia_dump:main"
